@@ -22,6 +22,8 @@ static constexpr uint32_t DEFAULT_AUTOSAVE_DELAY_MS = 120000UL;
 
 static constexpr uint32_t LED1_DARK_MS = 10;
 static constexpr uint32_t LED2_FLASH_MS = 30;
+static constexpr uint32_t LED3_FLASH_MS = 30;
+
 static constexpr uint32_t DEBOUNCE_MS = 25;
 
 static constexpr float POT_FILTER_ALPHA = 0.12f;
@@ -97,6 +99,7 @@ uint32_t lastConfigChangeMs = 0;
 
 uint32_t led1OffUntilMs = 0;
 uint32_t led2OnUntilMs = 0;
+uint32_t led3OnUntilMs = 0;
 
 uint16_t crc16(const uint8_t *data, size_t len) {
   uint16_t crc = 0xFFFF;
@@ -185,9 +188,14 @@ void pulseMidiInLed() {
   led2OnUntilMs = millis() + LED2_FLASH_MS;
 }
 
+void pulseMidiAdjustLed() {
+  led3OnUntilMs = millis() + LED3_FLASH_MS;
+}
+
 void updateLeds() {
   digitalWrite(PIN_LED1, millis() < led1OffUntilMs ? LOW : HIGH);
   digitalWrite(PIN_LED2, millis() < led2OnUntilMs ? HIGH : LOW);
+  digitalWrite(PIN_LED3, millis() < led3OnUntilMs ? HIGH : LOW);
 }
 
 void sendCC(uint8_t cc, uint8_t value, uint8_t channel) {
@@ -278,6 +286,8 @@ void handleSwitches() {
 void startCalibration(uint8_t potIndex) {
   if (potIndex >= NUM_POTS) return;
 
+  digitalWrite(PIN_LED3, HIGH);
+
   pots[potIndex].calibrating = true;
   pots[potIndex].calMin = ADC_MAX_VALUE;
   pots[potIndex].calMax = 0;
@@ -285,6 +295,8 @@ void startCalibration(uint8_t potIndex) {
 
 void stopCalibration(uint8_t potIndex) {
   if (potIndex >= NUM_POTS) return;
+
+  digitalWrite(PIN_LED3, LOW);
 
   pots[potIndex].calibrating = false;
 
@@ -364,6 +376,7 @@ void handleIncomingMidi() {
     if (usbMIDI.getType() == usbMIDI.ControlChange &&
         usbMIDI.getChannel() == cfg.receiveChannel) {
       handleConfigCC(usbMIDI.getData1(), usbMIDI.getData2());
+      sendCC(usbMIDI.getData1(), usbMIDI.getData2(), usbMIDI.getChannel()); // Midi through
     }
   }
 }
@@ -382,8 +395,8 @@ void setup() {
   pinMode(PIN_LED3, OUTPUT);
 
   digitalWrite(PIN_LED1, HIGH);
-  digitalWrite(PIN_LED2, LOW);
-  digitalWrite(PIN_LED3, LOW);
+  digitalWrite(PIN_LED2, HIGH);
+  digitalWrite(PIN_LED3, HIGH);
 
   pinMode(PIN_SW1, INPUT_PULLUP);
   pinMode(PIN_SW2, INPUT_PULLUP);
@@ -409,6 +422,13 @@ void setup() {
     switches[i].lastReading = pressed;
     switches[i].lastChangeMs = millis();
   }
+
+  Serial.begin(115200);
+  Serial.println("Welcome to MAT's world!");
+
+  delay(200);
+  digitalWrite(PIN_LED2, LOW);
+  digitalWrite(PIN_LED3, LOW);
 }
 
 void loop() {

@@ -1,0 +1,13 @@
+@font-face {
+  font-family: 'DSEG7';
+  src: url('ressources/dseg7-classic-latin-400-normal.woff2') format('woff2');
+  font-display: swap;
+}
+.SevenSeg textarea {
+  text-align: center !important;
+  font-family: 'DSEG7', monospace !important;
+  color: #ff3b3b;
+  text-shadow: 0 0 8px rgba(255, 0, 0, 0.7);
+  font-size: 15px;
+  letter-spacing: 0.1em;
+}
