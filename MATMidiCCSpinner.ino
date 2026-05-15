@@ -7,9 +7,9 @@ static constexpr uint8_t PIN_LED2 = 20;
 static constexpr uint8_t PIN_LED1 = 19;
 static constexpr uint8_t PIN_SW2  = 18;
 static constexpr uint8_t PIN_SW3  = 17;
-static constexpr uint8_t PIN_POT1 = 16;
+static constexpr uint8_t PIN_POT1 = 14;
 static constexpr uint8_t PIN_POT2 = 15;
-static constexpr uint8_t PIN_POT3 = 14;
+static constexpr uint8_t PIN_POT3 = 16;
 
 static constexpr uint8_t NUM_POTS = 3;
 static constexpr uint8_t NUM_SWITCHES = 3;
@@ -132,6 +132,97 @@ uint8_t clampChannel(uint8_t v) {
   return v;
 }
 
+void configDump()
+{
+  Serial.println();
+  Serial.println("========== CONFIG DUMP ==========");
+
+  Serial.print("magic             : 0x");
+  Serial.println(cfg.magic, HEX);
+
+  Serial.print("version           : ");
+  Serial.println(cfg.version);
+
+  Serial.print("receiveChannel    : ");
+  Serial.println(cfg.receiveChannel);
+
+  Serial.print("autosaveDelayMs   : ");
+  Serial.println(cfg.autosaveDelayMs);
+
+  Serial.print("crc               : 0x");
+  Serial.println(cfg.crc, HEX);
+
+  Serial.println();
+
+  // -------------------------------------------------
+  // POTS
+  // -------------------------------------------------
+
+  Serial.println("--------------- POTS ---------------");
+
+  for (uint8_t i = 0; i < NUM_POTS; i++)
+  {
+    const PotConfig& p = cfg.pots[i];
+
+    Serial.print("Pot ");
+    Serial.println(i);
+
+    Serial.print("  midiMin      : ");
+    Serial.println(p.midiMin);
+
+    Serial.print("  midiMax      : ");
+    Serial.println(p.midiMax);
+
+    Serial.print("  sendChannel  : ");
+    Serial.println(p.sendChannel);
+
+    Serial.print("  ccNumber     : ");
+    Serial.println(p.ccNumber);
+
+    Serial.print("  analogMin    : ");
+    Serial.println(p.analogMin);
+
+    Serial.print("  analogMax    : ");
+    Serial.println(p.analogMax);
+
+    Serial.println();
+  }
+
+  // -------------------------------------------------
+  // SWITCHES
+  // -------------------------------------------------
+
+  Serial.println("------------- SWITCHES -------------");
+
+  for (uint8_t i = 0; i < NUM_SWITCHES; i++)
+  {
+    const SwitchConfig& s = cfg.switches[i];
+
+    Serial.print("Switch ");
+    Serial.println(i);
+
+    Serial.print("  offValue     : ");
+    Serial.println(s.offValue);
+
+    Serial.print("  onValue      : ");
+    Serial.println(s.onValue);
+
+    Serial.print("  sendChannel  : ");
+    Serial.println(s.sendChannel);
+
+    Serial.print("  ccNumber     : ");
+    Serial.println(s.ccNumber);
+
+    Serial.print("  mode         : ");
+    Serial.println(s.mode);
+
+    Serial.println();
+  }
+
+  Serial.println("====================================");
+  Serial.println();
+}
+
 void setDefaults() {
   memset(&cfg, 0, sizeof(cfg));
 
@@ -158,13 +249,17 @@ void setDefaults() {
   }
 }
 
+
 void saveConfig() {
+  Serial.println("debug: saveConfig()");
   cfg.crc = calcConfigCrc(cfg);
   EEPROM.put(0, cfg);
   configDirty = false;
 }
 
 bool loadConfig() {
+  Serial.println("debug: loadConfig()");
+
   EEPROM.get(0, cfg);
 
   if (cfg.magic != EEPROM_MAGIC) return false;
@@ -246,6 +341,7 @@ void handlePots() {
 
     if (pots[i].lastMidi < 0 || abs(midiValue - pots[i].lastMidi) >= MIDI_DEADBAND) {
       pots[i].lastMidi = midiValue;
+      Serial.printf("debug: sending pot %i CC %i value %i channel %i\n", i, cfg.pots[i].ccNumber, midiValue, cfg.pots[i].sendChannel);
       sendCC(cfg.pots[i].ccNumber, midiValue, cfg.pots[i].sendChannel);
     }
   }
@@ -311,6 +407,7 @@ void stopCalibration(uint8_t potIndex) {
 }
 
 void resetConfigAndSave() {
+  Serial.println("debug: resetConfigAndSave()");
   setDefaults();
   saveConfig();
 }
@@ -318,6 +415,7 @@ void resetConfigAndSave() {
 void handleConfigCC(uint8_t cc, uint8_t value) {
   bool handled = true;
 
+  Serial.printf("debug: incoming CC %i value %i\n", cc, value);
   switch (cc) {
     case 100: cfg.pots[0].sendChannel = clampChannel(value); markConfigDirty(); break;
     case 101: cfg.pots[0].ccNumber = clampMidi7(value); markConfigDirty(); break;
@@ -363,6 +461,10 @@ void handleConfigCC(uint8_t cc, uint8_t value) {
       cfg.autosaveDelayMs = max<uint32_t>(1000UL, (uint32_t)value * 1000UL);
       markConfigDirty();
       break;
+
+    case 127:
+      configDump();
+    break;
 
     default:
       handled = false;
