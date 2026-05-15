@@ -11,10 +11,22 @@ USB-MIDI Multi Expression Controller for the Teensy 4.0 featuring:
 - Autosave functionality
 - MIDI activity LEDs
 - MIDI through
+- Seamless integration with Linux, Windows, or Mac.
 
 It compiles on Ardiuno IDE with Arduino AVR Board extension.
 
 ---
+# Use Case
+
+I developed this project to give an old IK Multimedia StealthPedal a second life.
+All original electronics were replaced with a Teensy running this custom firmware,
+while keeping the beautifully engineered original enclosure.
+The result is a fully USB-MIDI compliant device with no proprietary drivers,
+no vendor lock-in, and complete configurability — 
+all at a fraction of the cost of comparable commercial controllers.
+Absolutely love how it turned out.
+
+![GUI](resources/TeensyStealthPedal.jpg)
 
 # Features
 
@@ -402,18 +414,13 @@ Currently implemented:
 
 ---
 
-# Possible Future Extensions
+# Contributions
 
-- DIN MIDI
-- OLED display
-- Presets
-- SysEx support
-- USB Host
-- Bidirectional LED MIDI feedback
-- MIDI Learn
-- Web configurator
-- NRPN support
-- High resolution MIDI
+Heyhey, you are a CSS guru? There is so much to do on the OSC GUI!
+
+- Animated images of knobs and buttons
+- Font handling
+- General design
 
 ---
 
