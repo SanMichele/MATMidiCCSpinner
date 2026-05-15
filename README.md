@@ -433,3 +433,5 @@ Open Source / Free to use.
 Thanks to GPT-5.5, who flawlessly did all the dirty work!
 - Coding
 - README.md
+
+Too bad it can't solder.
