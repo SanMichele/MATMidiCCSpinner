@@ -195,7 +195,7 @@ void pulseMidiAdjustLed() {
 void updateLeds() {
   digitalWrite(PIN_LED1, millis() < led1OffUntilMs ? LOW : HIGH);
   digitalWrite(PIN_LED2, millis() < led2OnUntilMs ? HIGH : LOW);
-  digitalWrite(PIN_LED3, millis() < led3OnUntilMs ? HIGH : LOW);
+  //digitalWrite(PIN_LED3, millis() < led3OnUntilMs ? HIGH : LOW);
 }
 
 void sendCC(uint8_t cc, uint8_t value, uint8_t channel) {
@@ -286,6 +286,7 @@ void handleSwitches() {
 void startCalibration(uint8_t potIndex) {
   if (potIndex >= NUM_POTS) return;
 
+  Serial.println("debug: startCalibration");
   digitalWrite(PIN_LED3, HIGH);
 
   pots[potIndex].calibrating = true;
@@ -295,6 +296,8 @@ void startCalibration(uint8_t potIndex) {
 
 void stopCalibration(uint8_t potIndex) {
   if (potIndex >= NUM_POTS) return;
+
+  Serial.println("debug: stopCalibration");
 
   digitalWrite(PIN_LED3, LOW);
 
