@@ -15,7 +15,7 @@ static constexpr uint8_t NUM_POTS = 3;
 static constexpr uint8_t NUM_SWITCHES = 3;
 
 static constexpr uint16_t EEPROM_MAGIC = 0x4D41;
-static constexpr uint16_t CONFIG_VERSION = 3;
+static constexpr uint16_t CONFIG_VERSION = 4;
 
 static constexpr uint16_t ADC_MAX_VALUE = 4095;
 static constexpr uint32_t DEFAULT_AUTOSAVE_DELAY_MS = 120000UL;
@@ -59,6 +59,7 @@ struct Config {
   PotConfig pots[NUM_POTS];
   SwitchConfig switches[NUM_SWITCHES];
   uint32_t autosaveDelayMs;
+  bool isMidiThrough;
   uint16_t crc;
 };
 
@@ -152,6 +153,9 @@ void configDump()
   Serial.print("crc               : 0x");
   Serial.println(cfg.crc, HEX);
 
+  Serial.print("Midi through      : ");
+  Serial.println(cfg.isMidiThrough ? "TRUE" : "FALSE");
+
   Serial.println();
 
   // -------------------------------------------------
@@ -230,6 +234,7 @@ void setDefaults() {
   cfg.version = CONFIG_VERSION;
   cfg.receiveChannel = 1;
   cfg.autosaveDelayMs = DEFAULT_AUTOSAVE_DELAY_MS;
+  cfg.isMidiThrough = false;
 
   for (uint8_t i = 0; i < NUM_POTS; i++) {
     cfg.pots[i].sendChannel = 1;
@@ -466,6 +471,10 @@ void handleConfigCC(uint8_t cc, uint8_t value) {
       configDump();
     break;
 
+    case 99:
+      cfg.isMidiThrough = value == 127;
+    break;
+
     default:
       handled = false;
       break;
@@ -481,7 +490,9 @@ void handleIncomingMidi() {
     if (usbMIDI.getType() == usbMIDI.ControlChange &&
         usbMIDI.getChannel() == cfg.receiveChannel) {
       handleConfigCC(usbMIDI.getData1(), usbMIDI.getData2());
-      sendCC(usbMIDI.getData1(), usbMIDI.getData2(), usbMIDI.getChannel()); // Midi through
+      if (cfg.isMidiThrough) {
+        sendCC(usbMIDI.getData1(), usbMIDI.getData2(), usbMIDI.getChannel()); // Midi through
+      }
     }
   }
 }

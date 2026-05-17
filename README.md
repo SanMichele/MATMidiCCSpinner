@@ -208,6 +208,7 @@ cfg.receiveChannel
 
 | CC | Function |
 |---|---|
+|  99 | Midi Through: on = value == 127, off else |
 | 124 | Receive Channel |
 | 125 | Save / Reset |
 | 126 | Autosave Delay |

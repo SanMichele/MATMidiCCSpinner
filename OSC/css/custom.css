@@ -1,6 +1,6 @@
 @font-face {
   font-family: 'DSEG7';
-  src: url('ressources/dseg7-classic-latin-400-normal.woff2') format('woff2');
+  src: url('resources/dseg7-classic-latin-400-normal.woff2') format('woff2');
   font-display: swap;
 }
 .SevenSeg textarea {
